@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<title>已保存</title>
+		<link href="../css/mui.min.css" rel="stylesheet" />
+		<link rel="stylesheet" href="../css/style.css">
+		<link rel="stylesheet" type="text/css" href="../css/iconfont.css"/>
+	</head>
+	<body>
+		<header class="mui-bar mui-bar-nav" style="padding-right: 15px;">
+			<button id='return' class=" mui-left mui-btn-link"><span class="mui-icon mui-icon-left-nav"></span></button>
+			<h1 id='tab-title' class="mui-title">已保存</h1>
+		</header>
+		<form id="list" action="" autocomplete="on">
+		<div class="wellcome"></div>
+		<div class="btn-sub">
+			<button v-on:click="subUpdate" id="subm" class="sev-substyle"  type="button">已提交</button>
+			<button v-on:click="unsubUpdate" id="unsubm" class="sev-substyle"  type="button">未提交</button>
+		</div>
+		
+		<div id="content" class="mui-scroll-wrapper">
+			<div class="mui-scroll">
+				<ul class="mui-table-view " >
+					<li class="mui-table-view-cell the-all-list" v-for="list in applyList">
+						<div class="list-title  mui-ellipsis">{{list.title}}</div>
+						<span>{{list.startTime}}</span> <span class="apply_state">{{list.state}}</span>
+					</li>
+				</ul>
+			</div>
+		</div>
+
+		</form>
+
+		
+		<script src="../js/mui.min.js"></script>
+		<script src="../js/app.js"></script>
+		<script src="../js/h.min.js"></script>
+		<script src="../js/vue.min.js"></script>
+		<script>
+			//console.log('45');
+			(function($, doc) {
+				$.init({pullRefresh : {
+					container:"#content",//下拉刷新容器标识，querySelector能定位的css选择器均可，比如：id、.class等
+					down : {
+					style:'circle',//必选，下拉刷新样式，目前支持原生5+ ‘circle’ 样式
+					color:'#2BD009', //可选，默认“#2BD009” 下拉刷新控件颜色
+					height:'10px',//可选,默认50px.下拉刷新控件的高度,
+					range:'50px', //可选 默认100px,控件可下拉拖拽的范围
+					offset:'40px', //可选 默认0px,下拉刷新控件的起始位置
+					auto: true,//可选,默认false.首次加载自动上拉刷新一次
+					//contentrefresh : "正在刷新...",//下拉刷新显示内容
+					callback : pullDownRefresh//必选，刷新函数，根据具体业务来编写，比如通过ajax从服务器获取新数据；				,
+					}
+				}
+			});
+				mui('.mui-scroll-wrapper').scroll({deceleration: 0.0005 //flick 减速系数，系数越大，滚动速度越慢，滚动距离越小，默认值0.0006,
+				});
+			function pullDownRefresh(){
+				//业务逻辑代码，比如通过ajax从服务器获取新数据；
+				//......
+				//注意，加载完新数据后，必须执行如下代码，注意：若为ajax请求，则需将如下代码放置在处理完ajax响应数据之后		
+				//event.preventDefault();
+				//没有更多内容了，endPulldown 传入true， 不再执行下拉刷新
+				mui('#content').pullRefresh().endPulldown();
+			}
+				var settings = app.getSettings();
+				var account = doc.getElementById('account');
+				//
+				
+				window.addEventListener('show', function() {
+					var state = app.getState();
+				}, false);
+	//左上角返回按钮事件
+			mui.back = function() {
+				plus.webview.currentWebview().hide("auto", 300);
+			}
+			mui('header').on('tap','#return',function(event){
+				mui.back();
+			});
+			$.plusReady(function() {
+					plus.webview.currentWebview().setStyle({scrollIndicator:'none'}); //隐藏滚动条
+					window.addEventListener('go_top',function(event){//监听回到顶部
+						mui.scrollTo(0, 150,0);
+						//mui.trigger(document.getElementById("top"), 'tap'); //模拟点击事件
+					});
+	
+					//判断是否支持沉浸式
+					var isImmersedStatusbar = plus.navigator.isImmersedStatusbar();
+					//console.log(isImmersedStatusbar);
+					//获取系统状态栏高度
+					var StatusbarHeight = plus.navigator.getStatusbarHeight();
+					//console.log(StatusbarHeight);
+					var headerH = h('.mui-bar-nav').eq(0).height();
+					//console.log(headerH);
+					h('.mui-bar-nav').eq(0).css({height: (headerH + StatusbarHeight)+'px', 'paddingTop':StatusbarHeight+'px'});
+					document.getElementsByClassName('wellcome')[0].style.height=headerH+StatusbarHeight+'px';
+					//======================================================
+					mui('.btn-sub').on('touchstart','.sev-substyle',function(event){
+						var btn = this.getAttribute('id');
+						var thebtn = document.getElementById(btn);
+						var subm = document.getElementById('subm');
+						var unsubm = document.getElementById('unsubm');
+						var refresh = document.getElementById('refresh');
+
+						switch(btn){
+							case 'subm':
+							thebtn.style.backgroundColor = '#00FFFF';
+							unsubm.style.backgroundColor = '#fff';
+							break;
+							case 'unsubm':
+							thebtn.style.backgroundColor = '#00FFFF';
+							subm.style.backgroundColor = '#fff';
+							break;
+							default:break;
+						}
+					});
+				});
+			}(mui, document));
+			var theApplyList = [
+				{title:'楚雄州出差申请',startTime:'2018-09-18 13:00',state:'审核中'},
+				{title:'楚雄州出差申请都会死房贷款首付款第三代',startTime:'2018-09-18 13:00',state:'审核中'},
+				{title:'楚雄州出差申请',startTime:'2018-09-18 13:00',state:'审核中'},						
+				{title:'楚雄州出差申请',startTime:'2018-09-18 13:00',state:'审核中'},
+				{title:'楚雄州出差申请',startTime:'2018-09-18 13:00',state:'审核中'},						
+				{title:'楚雄州出差申请',startTime:'2018-09-18 13:00',state:'审核中'}];
+			var vue = new Vue({
+				el:'#list',
+				data:{
+				applyList:[
+				{title:'楚雄州出差申请',startTime:'2018-09-18 13:00',state:'审核中'},
+				{title:'楚雄州出差申请都会死房贷款首付款第三代',startTime:'2018-09-18 13:00',state:'审核中'},
+				{title:'楚雄州出差申请',startTime:'2018-09-18 13:00',state:'审核中'},						
+				{title:'楚雄州出差申请',startTime:'2018-09-18 13:00',state:'审核中'},
+				{title:'楚雄州出差申请',startTime:'2018-09-18 13:00',state:'审核中'},						
+				{title:'楚雄州出差申请',startTime:'2018-09-18 13:00',state:'审核中'}
+					]
+				},methods:{
+					unsubUpdate:function (event){
+						for (var i=0;i < this.applyList.length; i++){
+							this.applyList[i].state = '未提交';
+						}},
+					subUpdate:function (event){
+						for (var i=0;i < this.applyList.length; i++){
+							this.applyList[i].state = '审核中';
+						}
+					}
+				}
+			});
+		</script>
+	</body>
+
+</html>

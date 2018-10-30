@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+	<title>领导首页</title>
+	<link href="../css/mui.min.css" rel="stylesheet" />
+	<link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+	<form action="" autocomplete="on">
+		<div class="mui-content">
+			<div id="list" class="mui-content-padded mui-scroll" v-cloak>
+				<div class="notice">
+
+					<div class='notice-apply-backlog-nav notice-title'>通知</div>
+					<ul class="mui-table-view main-view">
+						<li class="mui-table-view-cell the-all-list noticelist" v-for="(list,index) in noticeList" v-if="index<3" @tap="open_noticeDetail(list)">
+							<div class="list-title  mui-ellipsis">{{list.title}}</div>
+							<span>{{list.author}}</span>
+							<span class="start-time">{{list.time}}</span>
+						</li>
+					</ul>
+					<button type="button" class="more more-notice" name="detailed_notice_list.html">查看更多...</button>
+				</div>
+				<div class="backlog">
+					<div class='notice-apply-backlog-nav backlog-title'>待办事项</div>
+					<ul class="mui-table-view main-view">
+						<li class="mui-table-view-cell the-all-list backloglist" v-for="(list,index) in backlogList" v-if="index<4" @tap="open_backlogDetail(list)">
+							<div class="list-title  mui-ellipsis">{{list.title}}</div>
+							<span>{{list.author}}</span>
+							<span class="start-time right_bottom_red">{{list.time}}</span>
+						</li>
+					</ul>
+					<button type="button" class="more more-backlog" name="detailed_backlog_list.html">查看更多...</button>
+				</div>
+				<div class="apply">
+					<div class='notice-apply-backlog-nav apply-title'>工作申请</div>
+					<ul class="mui-table-view main-view">
+						<li class="mui-table-view-cell the-all-list applylist" v-for="(list,index) in applyList" v-if="index<4" @tap="open_applyDetail(list)">
+							<div class="list-title  mui-ellipsis">{{list.title}}</div>
+							<span>{{list.author}}</span>
+							<span class="apply_state">{{list.time}}</span>
+						</li>
+					</ul>
+					<button type="button" class="more more-apply" name="detailed_apply_list.html">查看更多...</button>
+				</div>
+			</div>
+		</div>
+	</form>
+	<script src="../js/mui.min.js"></script>
+	<script src="../js/app.js"></script>
+	<script src="../js/h.min.js"></script>
+	<script src="../js/vue.min.js" type="text/javascript" charset="utf-8"></script>
+	<script>
+		mui.init({
+			pullRefresh: {
+				container: '#list',
+				down: {
+					style: 'circle',
+					offset: '0px',
+					auto: true,
+					callback: pulldownRefresh
+				}
+			}
+		});
+		(function ($, doc) {
+			var settings = app.getSettings();
+			var account = doc.getElementById('account');
+			//
+
+			window.addEventListener('show', function () {
+				var state = app.getState();
+			}, false);
+			
+		}(mui, document));
+		mui.plusReady(function () {
+			plus.webview.currentWebview().setStyle({
+				scrollIndicator: 'none'
+			}); //隐藏滚动条
+			//预加载详情页
+			notice_detail = mui.preload({
+				url: 'detailed_notice.html',
+				id: 'detailed_notice'
+			});
+			backlog_detail = mui.preload({
+				url: 'detailed_backlog.html',
+				id: 'detailed_backlog'
+			});
+			apply_detail = mui.preload({
+				url: 'detailed_apply.html',
+				id: 'detailed_apply'
+			});
+			var _self = plus.webview.currentWebview();
+			//开启回弹
+			_self.setStyle({
+				bounce: "vertical",
+				bounceBackground: "#AAAAAA",
+				popGesture: 'none' //首页有侧滑菜单，因此屏蔽首页的侧滑关闭功能
+			});
+		});
+		window.addEventListener('go_top', function (event) { //监听回到顶部
+			mui.scrollTo(0, 150, 0);
+		});
+		mui('.mui-content').on('tap', '.more', function () {
+			var target = this.getAttribute('name');
+			var webview;
+			mui.openWindow({
+				url: target,
+				show: {
+					aniShow: 'zoom-fade-out'
+				},
+				styles: {
+					popGesture: 'hide'
+				},
+				waiting: {
+					autoShow: false
+				}
+			});
+		});
+		var vue = new Vue({
+			el: '#list',
+			data: {
+				noticeList: [],
+				backlogList: [],
+				applyList: []
+			}
+		});
+		var noticelastId = '',
+			noticeminId = '',
+			backloglastId = '',
+			backlogminId = '',
+			applylastId = '',
+			applyminId = '';
+		var webview_detail = null; //详情页webview
+		//下拉刷新
+		function pulldownRefresh() {
+			if (window.plus && plus.networkinfo.getCurrentType() === plus.networkinfo.CONNECTION_NONE) {
+				plus.nativeUI.toast('似乎已断开与互联网的连接', {
+					verticalAlign: 'top'
+				});
+				return;
+			}
+			//数据字段名
+			var notice = {
+				column: "id,post_id,title,author_name,cover,published_at"
+			};
+			var backlog = {
+				column: "id,post_id,title,author_name,cover,published_at"
+			};
+			var apply = {
+				column: "id,post_id,title,author_name,cover,published_at"
+			};
+
+			if (noticelastId || backloglastId || applylastId) { //说明已有数据，目前处于下拉刷新，增加时间戳，触发服务端立即刷新，返回最新数据
+				notice.lastId = noticelastId;
+				notice.time = new Date().getTime() + "";
+
+				backlog.lastId = backloglastId;
+				backlog.time = new Date().getTime() + "";
+
+				apply.lastId = applylastId;
+				apply.time = new Date().getTime() + "";
+			}
+
+			//请求最新列表信息流
+			mui.getJSON('http://spider.dcloud.net.cn/api/news', notice, function (rsp) {
+				mui("#list").pullRefresh().endPulldownToRefresh();
+				if (rsp && rsp.length > 0) {
+					noticelastId = rsp[0].id;
+					if (!noticeminId) {
+						noticeminId = rsp[rsp.length - 1].id;
+					}
+					vue.noticeList = convert(rsp).concat(vue.noticeList);
+				}
+			});
+			mui.getJSON('http://spider.dcloud.net.cn/api/news', backlog, function (rsp) {
+				mui("#list").pullRefresh().endPulldownToRefresh();
+				if (rsp && rsp.length > 0) {
+					backloglastId = rsp[0].id;
+					if (!backlogminId) {
+						backlogminId = rsp[rsp.length - 1].id;
+					}
+					vue.backlogList = convert(rsp).concat(vue.backlogList);
+				}
+			});
+			mui.getJSON('http://spider.dcloud.net.cn/api/news', apply, function (rsp) {
+				mui("#list").pullRefresh().endPulldownToRefresh();
+				if (rsp && rsp.length > 0) {
+					applylastId = rsp[0].id;
+					if (!applyminId) {
+						applyminId = rsp[rsp.length - 1].id;
+					}
+					vue.applyList = convert(rsp).concat(vue.applyList);
+				}
+			});
+		}
+
+		/**
+		 * 打开详情
+		 * 
+		 * @param {Object} item 当前点击的对象
+		 */
+		function open_noticeDetail(item) {
+			//触发子窗口变更通知详情
+			mui.fire(notice_detail, 'get_detail', {
+				guid: item.guid,
+				title: item.title,
+				author: item.author,
+				time: item.time,
+				cover: item.cover
+			});
+			setTimeout(function () {
+				notice_detail.show("slide-in-right", 300);
+			}, 150);
+		}
+
+		function open_backlogDetail(item) {
+			//触发子窗口变更通知详情
+			mui.fire(backlog_detail, 'get_detail', {
+				guid: item.guid,
+				title: item.title,
+				author: item.author,
+				time: item.time,
+				cover: item.cover
+			});
+			setTimeout(function () {
+				backlog_detail.show("slide-in-right", 300);
+			}, 150);
+		}
+
+		function open_applyDetail(item) {
+			//触发子窗口变更通知详情
+			mui.fire(apply_detail, 'get_detail', {
+				guid: item.guid,
+				title: item.title,
+				author: item.author,
+				time: item.time,
+				cover: item.cover
+			});
+			setTimeout(function () {
+				apply_detail.show("slide-in-right", 300);
+			}, 150);
+		}
+		/**
+		 * 格式化时间的辅助类，将一个时间转换成x小时前、y天前等
+		 */
+
+		function convert(items) {
+			var dateUtils = {
+				UNITS: {
+					'年': 31557600000,
+					'月': 2629800000,
+					'天': 86400000,
+					'小时': 3600000,
+					'分钟': 60000,
+					'秒': 1000
+				},
+				humanize: function (milliseconds) {
+					var humanize = '';
+					mui.each(this.UNITS, function (unit, value) {
+						if (milliseconds >= value) {
+							humanize = Math.floor(milliseconds / value) + unit + '前';
+							return false;
+						}
+						return true;
+					});
+					return humanize || '刚刚';
+				},
+				format: function (dateStr) {
+					var date = this.parse(dateStr)
+					var diff = Date.now() - date.getTime();
+					if (diff < this.UNITS['天']) {
+						return this.humanize(diff);
+					}
+
+					var _format = function (number) {
+						return (number < 10 ? ('0' + number) : number);
+					};
+					return date.getFullYear() + '/' + _format(date.getMonth() + 1) + '/' + _format(date.getDay()) + '-' + _format(
+						date.getHours()) + ':' + _format(date.getMinutes());
+				},
+				parse: function (str) { //将"yyyy-mm-dd HH:MM:ss"格式的字符串，转化为一个Date对象
+					var a = str.split(/[^0-9]/);
+					return new Date(a[0], a[1] - 1, a[2], a[3], a[4], a[5]);
+				}
+			};
+			/**
+			 * 1、将服务端返回数据，转换成前端需要的格式
+			 * 2、若服务端返回格式和前端所需格式相同，则不需要改功能
+			 * 
+			 * @param {Array} items 
+			 */
+			var newItems = [];
+			items.forEach(function (item) {
+				newItems.push({
+					guid: item.post_id,
+					title: item.title,
+					author: item.author_name,
+					cover: item.cover,
+					time: dateUtils.format(item.published_at)
+				});
+			});
+			return newItems;
+		}
+	</script>
+</body>
+
+</html>

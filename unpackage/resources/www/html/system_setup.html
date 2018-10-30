@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<title>系统设置</title>
+		<link href="../css/mui.min.css" rel="stylesheet" />
+		<link rel="stylesheet" href="../css/style.css">
+	</head>
+	<body>
+		<header class="mui-bar mui-bar-nav">
+			<button id='return' class=" mui-left mui-btn-link"><span class="mui-icon mui-icon-left-nav"></span></button>
+			<h1 id='tab-title' class="mui-title">设置</h1>
+		</header>
+		<div class="wellcome"></div>
+		<div>
+			<ul class="mui-table-view  mypage-nav-table-view">
+				<li id="alter_password.html" class="mui-table-view-cell  myInf-cell direct_jump">
+					<p class="myInf-cell-text">修改密码</p>
+				</li>
+				<li class="mui-table-view-cell myInf-cell direct_jump">
+					<p class="myInf-cell-text">问题反馈</p>
+				</li>
+
+				<li class="mui-table-view-cell myInf-cell direct_jump">
+					<p class="myInf-cell-text ">检查更新</p>
+				</li>
+			</ul>
+			<ul class="mui-table-view mypage-nav-table-view">
+				<li id="my_exit" class="mui-table-view-cell myInf-cell nav-center">
+					<p class="myInf-cell-text">退出</p>
+				</li>
+
+			</ul>
+		</div>
+		<script src="../js/mui.min.js"></script>
+		<script src="../js/h.min.js"></script>
+		<script src="../js/app.js"></script>
+		<script>
+			(function($, doc) {
+				$.init();
+				//左上角返回按钮事件
+				mui.back = function() {
+					plus.webview.currentWebview().hide("auto", 300);
+				}
+				mui('header').on('tap', '#return', function(event) {
+					mui.back();
+				});
+				$.plusReady(function() {
+					plus.webview.currentWebview().setStyle({
+						scrollIndicator: 'none'
+					}); //隐藏滚动条
+
+					//判断是否支持沉浸式
+					var isImmersedStatusbar = plus.navigator.isImmersedStatusbar();
+					//console.log(isImmersedStatusbar);
+					//获取系统状态栏高度
+					var StatusbarHeight = plus.navigator.getStatusbarHeight();
+					//console.log(StatusbarHeight);
+					var headerH = h('.mui-bar-nav').eq(0).height();
+					//console.log(headerH);
+					h('.mui-bar-nav').eq(0).css({
+						height: (headerH + StatusbarHeight) + 'px',
+						'paddingTop': StatusbarHeight + 'px'
+					});
+					document.getElementsByClassName('wellcome')[0].style.height = headerH + StatusbarHeight + 'px';
+					//======================================================
+					
+					mui('div').on('touchend', '.direct_jump', function(event) {
+						var target = this.getAttribute('id');
+						var webview;
+						if (webview = plus.webview.getWebviewById(target)) {
+							webview.show('zoom-fade-out');
+						} else {
+							mui.openWindow({
+								url: target,
+								show: {
+									aniShow: 'zoom-fade-out',
+								},
+								styles: {
+									popGesture: 'hide'
+								},
+								waiting: {
+									autoShow: false
+								}
+
+							});
+						}
+					});
+
+					document.getElementById('my_exit').addEventListener('tap', function() {
+
+						if (mui.os.plus) {
+							var a = [{
+
+								title: "注销账号", //这些都是可以点击的选项的内容
+								color: "#ff4400"
+
+							}, {
+
+								title: "退出系统"
+
+							}];
+
+							plus.nativeUI.actionSheet({
+
+								// 　　　　　　　　title: ,           //这里就是这个弹窗的title
+								color: '#f0000',
+
+								cancel: "取消", //取消按钮
+
+								buttons: a
+
+							}, function(b) { /*actionSheet 按钮点击事件*/
+
+								switch (b.index) {
+									case 1:
+										app.setState({});
+										//判断当前设备类型
+										if (mui.os.ios || mui.os.ipad || mui.os.android) {
+											// 获取当前webview窗口对象
+											var curr = plus.webview.currentWebview();
+											//获取所有已经打开的webview窗口
+											var wvs = plus.webview.all();
+
+											for (var i = 0, len = wvs.length; i < len; i++) {
+												//关闭除当前页面外的其他页面
+												if (wvs[i].getURL() == curr.getURL())
+													//遇到当前页跳过
+													continue;
+												//非当前页执行关闭
+												console.log("关闭了" + wvs[i].id);
+												plus.webview.close(wvs[i]);
+											}
+											//打开login页面
+											plus.webview.open('login.html');
+
+											//执行关闭当前页面
+											curr.close();
+										} else {
+											//runtime 运行环境管理模块执行退出 
+											plus.runtime.quit();
+										}
+										break;
+									case 2:
+										plus.runtime.quit();
+										break;
+									default:
+										break;
+								}
+							});
+
+						}
+
+					}, false);
+				});
+			}(mui, document));
+		</script>
+	</body>
+
+</html>

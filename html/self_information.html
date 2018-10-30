@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<title>个人信息</title>
+		<link href="../css/mui.min.css" rel="stylesheet" />
+		<link rel="stylesheet" href="../css/style.css">
+	</head>
+	<body>
+		<header class="mui-bar mui-bar-nav">
+			<button id='return' class=" mui-left mui-btn-link"><span class="mui-icon mui-icon-left-nav"></span></button>
+			<h1 id='tab-title' class="mui-title">个人信息</h1>
+		</header>
+
+		<ul class="mui-table-view detailed-myInf">
+			<li class="mui-table-view-cell">
+				<img id="myPhoto" class="setMyPhoto" src="../images/uploadpicture.png" alt="我的头像">
+			</li>
+			<li class="mui-table-view-cell  myInf-cell">
+				<p class="myInf-cell-text">姓名</p>
+			</li>
+			<li class="mui-table-view-cell myInf-cell">
+				<p class="myInf-cell-text">部门</p>
+			</li>
+
+			<li class="mui-table-view-cell myInf-cell">
+				<p class="myInf-cell-text">职位</p>
+			</li>
+			<li class="mui-table-view-cell myInf-cell">
+				<p class="myInf-cell-text">性别</p>
+			</li>
+
+		</ul>
+		<script src="../js/mui.min.js"></script>
+		<script src="../js/h.min.js"></script>
+		<script>
+			(function($, doc) {
+				$.init();
+				//左上角返回按钮事件
+				mui.back = function() {
+					plus.webview.currentWebview().hide("auto", 300);
+				}
+				mui('header').on('tap', '#return', function(event) {
+					mui.back();
+				});
+				$.plusReady(function() {
+					plus.webview.currentWebview().setStyle({
+						scrollIndicator: 'none'
+					}); //隐藏滚动条
+				});
+			}(mui, document));
+			// 			var vue =new Vue({
+			// 				el : "#information",
+			// 				data :{
+			// 					self_information : {}
+			// 				}
+			// 			});
+			// 			mui.ajax({
+			// 				
+			// 			});
+			
+			var photo = JSON.parse(localStorage.getItem('$myPhoto')|| '[]');/* 从本地存储获取用户头像 */
+			var myPhoto = document.getElementById('myPhoto');
+			if(photo.Src){
+				myPhoto.setAttribute("src",photo.imgSrc);
+			}
+			
+			function setHtml(e) {
+				var img = document.getElementById("myPhoto");
+				img.setAttribute("src", e);
+				//document.body.appendChild(img);
+			}
+			// 拍照获取图片
+			function getImage() {
+				var c = plus.camera.getCamera();
+				c.captureImage(function(e) { /* 进行拍照 */
+					plus.io.resolveLocalFileSystemURL(e, function(entry) {
+						var imgSrc = entry.toLocalURL() + "?version=" + new Date().getTime(); //拿到图片路径
+						console.log(imgSrc);
+						setHtml(imgSrc);
+						mui.fire(plus.webview.getWebviewById("html/mine_page.html") ,'setPhoto',{imgSrc : imgSrc});
+						
+						var myPhoto = JSON.parse(localStorage.getItem('$myPhoto'||'[]'));/* 把头像存储到本地 */
+						console.log(myPhoto);
+						localStorage.setItem("$myPhoto",JSON.stringify(myPhoto));
+					}, function(e) {
+						console.log("读取拍照文件错误：" + e.message);
+					});
+				}, function(s) {
+					console.log("拍照失败" + s);
+				}, {
+					filename: "_doc/camera/"
+				});
+			}
+
+			// 从相册中选择图片 
+			function galleryImg() {
+				// 从相册中选择图片
+				plus.gallery.pick(function(e) {
+					for (var i in e.files) {
+						var fileSrc = e.files[i]
+						setHtml(fileSrc);
+						mui.fire(plus.webview.getWebviewById("html/mine_page.html") ,'setPhoto',{imgSrc : fileSrc});
+						var myPhoto = JSON.parse(localStorage.getItem('$myPhoto'||'[]'));/* 把头像存储到本地 */
+						myPhoto = {"imgSrc" : fileSrc};
+						localStorage.setItem("$myPhoto",JSON.stringify(myPhoto));
+					}
+				}, function(e) {
+					console.log("取消选择图片");
+				}, {
+					filter: "image",
+					multiple: true,
+					maximum: 1,
+					system: false,
+					onmaxed: function() {
+						/* plus.nativeUI.alert('最多只能选择1张图片'); */
+					}
+				});
+			}
+
+
+			function upload() {
+				var files = document.getElementById('testImg')
+				MicroTaskGUID = common.guid();
+
+				var rul = "服务器地址"
+
+				var imgsArr = mui(".task-img");
+
+				mui.each(imgsArr, function(index, item) {
+					// 		console.log(index)
+					// 		console.log(item.src)
+					createUp(item)
+				})
+
+
+				function createUp(files) {
+					var task = plus.uploader.createUpload(url, {
+							method: "POST"
+						},
+						function(t, status) { //上传完成
+							if (status == 200) {
+								console.log("上传成功：" + t.responseText);
+							} else {
+								console.log("上传失败：" + status);
+							}
+						}
+					);
+					//添加其他参数
+					//	    task.addData("name","test");
+					task.addFile(files.src, {
+						key: files.src
+					});
+					task.start();
+				}
+			}
+
+			mui('ul').on('tap', '.setMyPhoto', function() {
+				if (mui.os.plus) {
+					var buttonTit = [{
+						title: "拍照"
+					}, {
+						title: "从手机相册选择"
+					}];
+
+					plus.nativeUI.actionSheet({
+						title: "上传图片",
+						cancel: "取消",
+						buttons: buttonTit
+					}, function(b) { /*actionSheet 按钮点击事件*/
+						switch (b.index) {
+							case 0:
+								break;
+							case 1:
+								getImage(); /*拍照*/
+								break;
+							case 2:
+								galleryImg(); /*打开相册*/
+								break;
+							default:
+								break;
+						}
+					})
+				}
+			}, false);
+		</script>
+	</body>
+
+</html>

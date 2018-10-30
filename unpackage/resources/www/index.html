@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="css/mui.min.css" rel="stylesheet" />
+		<link rel="stylesheet" href="css/style.css">
+		<title></title>
+	</head>
+	<body id='index'>
+		<header class="mui-bar mui-bar-nav" style="padding-right: 15px;">
+			<h1 id='tab-title' class="mui-title">首页</h1>
+		</header>
+		<nav class="mui-bar mui-bar-tab style-nav-bar" id="nav">
+			<a id="html/main.html" class="mui-tab-item mui-active" href='#'>
+				<span class="mui-icon mui-icon-home"></span>
+				<span class="mui-tab-label">首页</span>
+			</a>
+			<a id="html/work_page.html" class="mui-tab-item" href="#">
+				<span class="mui-icon mui-icon-email"></span>
+				<span class="mui-tab-label">工作</span>
+			</a>
+			<a id="html/mine_page.html" class="mui-tab-item" href="#">
+				<span class="mui-icon mui-icon-contact"></span>
+				<span class="mui-tab-label">我的</span>
+			</a>
+		</nav>
+		<script src="js/mui.min.js"></script>
+		<script src="js/h.min.js"></script>
+		<script src="js/app.js"></script>
+		<script type="text/javascript" charset="utf-8">
+			mui.init();
+			var subpages = ['html/main.html', 'html/work_page.html', 'html/mine_page.html'];
+			var subpage_style = {
+				top: '68px',
+				bottom: '50px'
+			};
+			var aniShow = {}; //动画显示
+			var users = JSON.parse(localStorage.getItem("$users"));
+			if (users.Character != 4) {
+				subpages[0] = 'html/leader_main.html';
+				var mainId = document.getElementById('html/main.html');
+				mainId.setAttribute('id','html/leader_main.html');
+			}
+			//首次启动切滑效果
+			mui.plusReady(function() {
+				//判断是否支持沉浸式
+				var isImmersedStatusbar = plus.navigator.isImmersedStatusbar();
+				//console.log(isImmersedStatusbar);
+				//获取系统状态栏高度
+				var StatusbarHeight = plus.navigator.getStatusbarHeight();
+				//console.log(StatusbarHeight);
+				var headerH = h('.mui-bar-nav').eq(0).height();
+				//console.log(headerH);
+				h('.mui-bar-nav').eq(0).css({
+					height: (headerH + StatusbarHeight) + 'px',
+					'paddingTop': StatusbarHeight + 'px'
+				});
+				//document.getElementsByClassName('wellcome')[0].style.height=headerH+StatusbarHeight+'px';
+				//======================================================
+				var self = plus.webview.currentWebview();
+				for (var i = 0; i < subpages.length; i++) {
+					var temp = {};
+					var sub = plus.webview.create(subpages[i], subpages[i], subpage_style);
+					if (i > 0) {
+						sub.hide();
+					} else {
+						temp[subpages[i]] = "true";
+						mui.extend(aniShow, temp); //合并对象
+					}
+					self.append(sub);
+				}
+				//当前激活选项
+				var activeTab = subpages[0];
+				var title = document.getElementById("tab-title");
+				//选项卡点击事件
+				mui('.mui-bar-tab').on('tap', 'a', function(event) {
+					var targetTab = this.getAttribute('id');
+					//更换标题
+					title.innerHTML = this.querySelector('.mui-tab-label').innerHTML;
+
+					if (targetTab == activeTab) { //联合子页面监听
+						var subpage = plus.webview.getWebviewById(activeTab);
+						mui.fire(subpage, "go_top", {});
+						//return;
+					} else { //显示目标选项卡
+						//若为iOS平台或非首次显示，则直接显示
+						if (mui.os.ios || aniShow[targetTab]) {
+							plus.webview.show(targetTab, "fade-in", 400);
+						} else {
+							//否则，使用fade-in动画，且保存变量
+							var temp = {};
+							temp[targetTab] = "true";
+							mui.extend(aniShow, temp);
+							plus.webview.show(targetTab, "fade-in", 400);
+						}
+						//隐藏当前;
+						plus.webview.hide(activeTab);
+						//更改当前活跃的选项卡
+						activeTab = targetTab;
+					}
+
+				});
+
+				mui.oldBack = mui.back;
+				var backButtonPress = 0;
+				mui.back = function(event) {
+					backButtonPress++;
+					if (backButtonPress > 1) {
+						var a = plus.webview.all();
+						for (var i = 0; i < a.length; i++) {
+							console.log("关闭了" + a[i].id);
+							plus.webview.close(a[i].id);
+						}
+						plus.runtime.quit();
+					} else {
+						plus.nativeUI.toast('再按一次退出应用');
+					}
+					setTimeout(function() {
+						backButtonPress = 0;
+					}, 1000);
+					return false;
+				};
+
+			});
+		</script>
+	</body>
+</html>

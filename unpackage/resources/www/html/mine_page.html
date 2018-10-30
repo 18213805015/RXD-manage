@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" type="text/css" href="../css/mui.min.css"/>
+		<link rel="stylesheet" type="text/css" href="../css/style.css"/>
+		<title>我的</title>
+	</head>
+	<body>
+		
+		<div class="wellcome"></div>
+				<div class="mine">
+					<ul class="mui-table-view mypage-nav-table-view">
+						<li class="mui-table-view-cell" id="selfInformation">
+							<img class="myPhoto" src="../images/qq.png" alt="我的头像">
+							<div id="info" class="self-inf">
+								<p class="basicInf-name">{{selfInfo.name}}</p>
+								<p class="basicInf">部门：{{selfInfo.department}}</p>
+								<p class="basicInf">职位：{{selfInfo.position}}</p>
+							</div>
+						
+						</li>
+					</ul>
+					<ul class="mui-table-view mypage-nav-table-view">
+						<li class="mui-table-view-cell" id="myFile">
+							<img class='mypage-nav-img' src="../images/folder_img.png" alt="我的文档">
+							<div class="my-nav">
+								我的文档
+							</div>
+		
+						</li>
+					</ul>
+					<ul class="mui-table-view mypage-nav-table-view">
+						<li class="mui-table-view-cell" id="systemSetup">
+							<img class='mypage-nav-img' src="../images/setting_img.png" alt="设置">
+								<div class="my-nav">
+									设置
+								</div>
+						</li>
+					</ul>
+				</div>
+		<script src="../js/mui.min.js"></script>
+		<script src="../js/app.js"></script>
+		<script src="../js/vue.min.js"></script>
+		<script type="text/javascript">
+			(function($, doc) {
+				$.init();
+				//左上角返回按钮事件
+			mui('header').on('tap','#return',function(event){
+				mui.back();
+			});
+			$.plusReady(function() {
+			//隐藏滚动条
+			plus.webview.currentWebview().setStyle({scrollIndicator:'none'});	
+			//页面跳转
+			var selfInf_page = mui.preload({
+				'id':'selfInformation',
+				'url':'self_information.html'
+			});
+			var sysSetup_page = mui.preload({
+				'id':'systemSetup',
+				'url':'system_setup.html'
+			});
+			mui('.mine').on('tap','.mui-table-view-cell',function(event){
+				var target = this.getAttribute('id');
+				var webview;
+				if(webview = plus.webview.getWebviewById(target)){
+					webview.show('pop-in');
+				}
+				else
+				{
+					mui.openWindow({
+						id : target,
+						show: {
+							aniShow:'pop-in'
+							},
+						styles:{
+							popGesture: 'hide'
+						},
+						waiting:{
+							autoShow:false
+						}
+					},300);
+					
+				}
+				
+			});
+		});
+	}(mui, document));
+	
+	var user = JSON.parse(localStorage.getItem("$users"));
+	var vue = new Vue({
+		el:"#info",
+		data:{
+			selfInfo:{
+				name: user.Name,
+				department: user.Department,
+				position: function(user){
+					var position='';
+					switch(user.Character){
+						case '1': position = '公司总经理';
+						break;
+						case '2': position = '部门经理';
+						break;
+						case '3': position = '项目经理';
+						break;
+						case '4': position = '普通员工';
+						break;
+						default: break;
+					}
+					return position;
+				}(user)
+			}
+		}
+	})
+		</script>
+	</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<title>请假申请</title>
+		<link href="../css/mui.min.css" rel="stylesheet" />
+		<link rel="stylesheet" href="../css/style.css">
+	</head>
+	<body>
+		<header class="mui-bar mui-bar-nav" >
+			<button id='return' class=" mui-left mui-btn-link"><span class="mui-icon mui-icon-left-nav">
+			<!-- <span class="back-text">返回</span></span> -->
+			</button>
+			<h1 id='tab-title' class="mui-title">请假申请</h1>
+		</header>
+
+		<div>
+			<ul class="mui-table-view ">
+				<li class="mui-table-view-cell" >
+					<img class='mypage-nav-img' src="../images/folder_img.png" alt="我的文档">
+					<div class="my-nav">
+						已保存的申请单
+					</div>
+
+				</li>
+				<li class="mui-table-view-cell" >
+					<img class='mypage-nav-img' src="../images/setting_img.png" alt="设置">
+						<div class="my-nav">
+							创建申请单
+						</div>
+					
+				</li>
+				<li class="mui-table-view-cell" >
+					<img class='mypage-nav-img' src="../images/setting_img.png" alt="设置">
+						<div class="my-nav">
+							查看审批情况
+						</div>
+					
+				</li>
+			</ul>
+		</div>
+		<script src="../js/mui.min.js"></script>
+		<script src="../js/h.min.js"></script>
+		<script>
+			(function($, doc) {
+				$.init();
+	//左上角返回按钮事件
+
+			mui('header').on('tap','#return',function(event){
+				mui.back();
+			});
+
+			}(mui, document));
+		</script>
+	</body>
+
+</html>

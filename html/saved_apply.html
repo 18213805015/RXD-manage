@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<title>创建申请单</title>
+		<link href="../css/mui.min.css" rel="stylesheet" />
+		<link rel="stylesheet" href="../css/style.css">
+		<link rel="stylesheet" type="text/css" href="../css/mui.picker.min.css" />
+	</head>
+	<body>
+		<header class="mui-bar mui-bar-nav" style="padding-right: 15px;">
+			<button id='return' class=" mui-left mui-btn-link"><span class="mui-icon mui-icon-left-nav"></span></button>
+			<h1 id='tab-title' class="mui-title">创建</h1>
+			<button id="subEnter" class="title-btn-right" type="button">提交</button>
+		</header>
+
+		<form class="detail_content">
+			<div id="applyForm">
+				<label class="tip-name tip-title">标题</label>
+				<textarea id="travelTitle" placeholder="在此输入标题" class="Content tip-title-content" v-bind:value="title"></textarea>
+				<label class="tip-name tip-title">参与人</label>
+				<textarea id="travelpartner" placeholder="在此出差小组成员名字" class="Content tip-title-content">{{time}}</textarea>
+				<label class="tip-name tip-date">出差时间</label>
+				<div class="tip-date-content">
+					<input id='result0' class="ui-alert btn-date" type="button" data-options='{"type":"date"}' v-bind:value="time">
+					<span class="date-to-date">-</span>
+					<input id='result1' class="ui-alert btn-date" type="button" data-options='{"type":"date"}' v-bind:value="time">
+				</div>
+				<label class="tip-name tip-title">出差地点</label>
+				<textarea id="travelAddress" placeholder="在此出入出差地点" class="Content tip-title-content">{{author}}</textarea>
+				<label class="tip-name ">工作内容</label>
+				<textarea id="travelMain" placeholder="在此输入出差工作的简要描述" class="Content">{{author}}</textarea>
+				<label class="tip-name tip-title">备注</label>
+				<textarea id="remarks" placeholder=" " class="Content tip-title-content"></textarea>
+			</div>
+			<label class="tip-addEnclosure">添加附件:</label>
+			<input type="file" name="annex" id="addEnclosure" multiple="multiple" />
+			<!-- <button id="subEnter" type="button" class="btn-option">提交</button> -->
+		</form>
+		<script src="../js/mui.min.js"></script>
+		<script src="../js/app.js"></script>
+		<script src="../js/h.min.js"></script>
+		<script src="../js/mui.picker.min.js"></script>
+		<script src="../js/vue.min.js" type="text/javascript" charset="utf-8"></script>
+		<script>
+			//console.log('45');
+			function getDefaultData() {
+				return {
+					cover: '',
+					title: '',
+					author: '',
+					time: '',
+					content: ''
+				}
+			}
+			var vm = new Vue({
+				el: '.detail_content',
+				data: {
+					cover: '',
+					title: '',
+					author: '',
+					time: '',
+					content: ''
+				},
+				methods: {
+					resetData: function() { //重置数据
+						Object.assign(this.$data, getDefaultData());
+					}
+				}
+			});
+
+			//监听自定义事件，获取新闻详情
+			document.addEventListener('get_detail', function(event) {
+				var guid = event.detail.guid;
+				if (!guid) {
+					return;
+				}
+
+				//前页传入的数据，直接渲染，无需等待ajax请求详情后
+				vm.cover = event.detail.cover;
+				vm.title = event.detail.title;
+				vm.author = event.detail.author;
+				vm.time = event.detail.time;
+				//向服务端请求文章详情内容
+				mui.ajax('http://spider.dcloud.net.cn/api/news/36kr/' + guid, {
+					type: 'GET',
+					dataType: 'json', //服务器返回json格式数据
+					timeout: 15000, //15秒超时
+					success: function(rsp) {
+						vm.content = rsp.content;
+					},
+					error: function(xhr, type, errorThrown) {
+						mui.toast('获取文章内容失败');
+						//TODO 此处可以向服务端告警
+					}
+				});
+			});
+			(function($, doc) {
+				$.init();
+				window.addEventListener('show', function() {
+					var state = app.getState();
+				}, false);
+
+				$.plusReady(function() {
+					plus.webview.currentWebview().setStyle({
+						scrollIndicator: 'none'
+					}); //隐藏滚动条
+					window.addEventListener('go_top', function(event) { //监听回到顶部
+						mui.scrollTo(0, 150, 0);
+						//mui.trigger(document.getElementById("top"), 'tap'); //模拟点击事件
+					});
+				});
+
+				function valueisNUll(thisID) {
+					if (document.getElementById(thisID).value == '')
+						return true;
+					else
+						return false;
+				}
+				mui('body').on('tap', 'button', function(event) {
+					var btnValue = this.getAttribute('id');
+					var btnArray = ['否', '是'];
+					if (btnValue == 'subEnter') {
+						result0 = document.getElementById('result0').value;
+						result1 = document.getElementById('result1').value;
+						if (valueisNUll('travelTitle') || /^[\u4e00-\u9fa5]*$/.test(result0) || /^[\u4e00-\u9fa5]*$/.test(result1) ||
+							valueisNUll('travelAddress') || valueisNUll('travelMain')) {
+							mui.toast('请输入必要信息，如：标题、时间、地点、内容', {
+								duration: 'short',
+								/*duration：持续显示时间，short：2000ms（默认）, long(3500ms)*/
+								type: 'div' /* 是否使用h5绘制的对话框 */
+							});
+						} else {
+							document.activeElement.blur();/* 取消聚焦，避免提交过程中输入键盘依旧处于打开状态 */ 
+							var travelForm = {
+								travelTitle: doc.getElementById("travelTitle").value,
+								timeStart: doc.getElementById("result0").value,
+								timeEnd: doc.getElementById("result1").value,
+								travelAddress: doc.getElementById("travelAddress").value,
+								travelMain: doc.getElementById("travelMain").value,
+								remarks: doc.getElementById("remarks").value,
+								dayNum: app.dayNum(doc.getElementById("result0").value, doc.getElementById("result1").value),
+								}
+								
+								mui.ajax('http://192.168.0.110:8080/api/user/login', {
+									type: 'POST',
+									data: travelForm,
+									dataType: 'json', //服务器返回json格式数据
+									timeout: 100000, //10秒超时
+									headers: {
+										'contentType': "application/x-www-form-urlencoded"
+									}, 
+									beforeSend: function() {
+										plus.nativeUI.showWaiting('正在提交...',{background:'#00bfff'});
+										mask.show(); //显示遮罩层
+									},
+									complete: function() {
+										plus.nativeUI.closeWaiting();
+										mask.close(); //关闭遮罩层
+									},
+									success: function(rsp) {
+										if (rsp) {
+											mui.toast('提交成功');
+										} else {
+											mui.toast('提交失败');
+										}
+										
+									},
+									error: function(xhr, type, errorThrown) {
+										console.log(xhr + type + errorThrown);
+										mui.toast('网络错误，请检查网络数据连接是否开启!');
+										//TODO 此处可以向服务端告警
+									}
+								});
+
+							console.log(JSON.stringify(travelForm));
+						}
+					} else if (btnValue == 'return') { /* 左上角返回按钮事件 */
+						mui.back();
+					}
+				});
+				mui.back = function() {
+					/* 判断用户是否输入了表单信息 */
+					var flag = 0;				
+					var ipt = document.getElementById('applyForm').getElementsByTagName('textarea');
+					for(var i = 0; i < ipt.length ; i++){
+						if(ipt[i].value.length != 0){
+							flag = 1;
+						}
+					}
+					
+					var btnArray = ['是', '否'];
+					if(flag == 1){
+						mui.confirm('是否保存未完成信息？', ' ', btnArray, function(e) {
+							if (e.index == 1) {
+								plus.webview.currentWebview().hide("auto", 300);
+							} else {
+								plus.webview.currentWebview().hide("auto", 300);
+							}
+							vm.resetData();
+						},'div');
+					}else{
+						mui.confirm('是否取消此次编辑？', ' ', btnArray, function(e) {
+							if (e.index == 1) {
+								return;
+							} else {
+								vm.resetData();
+								plus.webview.currentWebview().hide("auto", 300);
+							}
+						},'div');
+					}
+					
+				};
+
+				var btns = $('.btn-date');
+				btns.each(function(i, btn) {
+					btn.addEventListener('tap', function() {
+						var _self = this;
+						var id = this.getAttribute('id');
+						var result = document.getElementById(id);
+						if (_self.picker) {
+							_self.picker.show(function(rs) {
+								result.value = rs.text;
+								_self.picker.dispose();
+								_self.picker = null;
+							});
+						} else {
+							var optionsJson = this.getAttribute('data-options') || '{}';
+							var options = JSON.parse(optionsJson);
+							/*
+							 * 首次显示时实例化组件
+							 * 示例为了简洁，将 options 放在了按钮的 dom 上
+							 * 也可以直接通过代码声明 optinos 用于实例化 DtPicker
+							 */
+							_self.picker = new $.DtPicker(options);
+							_self.picker.show(function(rs) {
+								/*
+								 * rs.value 拼合后的 value
+								 * rs.text 拼合后的 text
+								 * rs.y 年，可以通过 rs.y.vaue 和 rs.y.text 获取值和文本
+								 * rs.m 月，用法同年
+								 * rs.d 日，用法同年
+								 * rs.h 时，用法同年
+								 * rs.i 分（minutes 的第二个字母），用法同年
+								 */
+								result.value = rs.text;
+								/* 
+								 * 返回 false 可以阻止选择框的关闭
+								 * return false;
+								 */
+								/*
+								 * 释放组件资源，释放后将将不能再操作组件
+								 * 通常情况下，不需要示放组件，new DtPicker(options) 后，可以一直使用。
+								 * 当前示例，因为内容较多，如不进行资原释放，在某些设备上会较慢。
+								 * 所以每次用完便立即调用 dispose 进行释放，下次用时再创建新实例。
+								 */
+								_self.picker.dispose();
+								_self.picker = null;
+							});
+						}
+					}, false);
+				});
+
+			}(mui, document));
+		</script>
+	</body>
+
+</html>

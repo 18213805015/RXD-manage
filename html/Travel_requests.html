@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<title>出差申请</title>
+		<link href="../css/mui.min.css" rel="stylesheet" />
+		<link rel="stylesheet" href="../css/style.css">
+	</head>
+	<body>
+		<header class="mui-bar mui-bar-nav">
+			<button id='return' class=" mui-left mui-btn-link"><span class="mui-icon mui-icon-left-nav">
+					<!-- <span class="back-text">返回</span></span> -->
+			</button>
+			<h1 id='tab-title' class="mui-title">出差申请</h1>
+		</header>
+
+		<div>
+			<ul class="mui-table-view ">
+				<li id="create_Apply.html" class="mui-table-view-cell ">
+					<img class='mypage-nav-img' src="../images/create.png" alt="设置">
+					<div class="my-nav">
+						创建申请单
+					</div>
+				</li>
+				<li id="saved_apply_list.html" class="mui-table-view-cell ">
+					<img class='mypage-nav-img' src="../images/draft.png" alt="已保存的申请单">
+					<div class="my-nav">
+						草稿箱
+					</div>
+
+				</li>
+				<li id="detailed_apply_list.html" class="mui-table-view-cell ">
+					<img class='mypage-nav-img' src="../images/see.png" alt="设置">
+					<div class="my-nav">
+						查看审批情况
+					</div>
+				</li>
+			</ul>
+		</div>
+		<script src="../js/mui.min.js"></script>
+		<script src="../js/h.min.js"></script>
+		<script>
+			(function($, doc) {
+				$.init();
+				//左上角返回按钮事件
+				mui.back = function() {
+					plus.webview.currentWebview().hide("auto", 300);
+				}
+				mui('header').on('tap', '#return', function(event) {
+					mui.back();
+				});
+			}(mui, document));
+			mui('ul').on('tap', '.mui-table-view-cell', function(event) {
+				var target = this.getAttribute('id');
+				mui.openWindow({
+					url: target,
+					show: {
+						aniShow: 'zoom-fade-out'
+					},
+					styles: {
+						popGesture: 'hide'
+					},
+					waiting: {
+						autoShow: false
+					}
+				});
+			});
+		</script>
+	</body>
+
+</html>

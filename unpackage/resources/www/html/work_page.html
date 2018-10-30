@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" type="text/css" href="../css/mui.min.css"/>
+		<link rel="stylesheet" type="text/css" href="../css/style.css"/>
+		<link rel="stylesheet" type="text/css" href="../css/iconfont.css">
+		<title>工作</title>
+	</head>
+	<body>
+		
+		<div >
+			<button id ='Travel' type="button" class=" work ">
+				<div>
+					<svg class="icon" aria-hidden="true"> <use xlink:href="#icon-jinkoushangpin"></use></svg>
+				</div>
+				出差申请</button>
+			<button id="leave" type="button" class="workCreate work ">
+				<div>
+					<svg class="icon" aria-hidden="true"> <use xlink:href="#icon-bangzhuzhongxin"></use></svg>
+				</div>
+				请假申请</button>
+			<button id="backlog" type="button" class="work">
+				<div>
+					<svg class="icon" aria-hidden="true"> <use xlink:href="#icon-quanbudingdan"></use></svg>
+				</div>
+				待办事项</button>
+		</div>
+		<script src="../fonts/iconfont.js"></script>
+		<script type="text/javascript" src="../js/mui.min.js"></script>
+		<script type="text/javascript">
+			(function($, doc) {
+				$.init();
+				//左上角返回按钮事件
+			mui('header').on('tap','#return',function(event){
+				mui.back();
+			});
+			$.plusReady(function() {
+			plus.webview.currentWebview().setStyle({scrollIndicator:'none'}); //隐藏滚动条
+	//工作页面的跳转
+			var Travel_page = mui.preload({
+				'id':'Travel',
+				'url':'Travel_requests'
+			});
+			var Leave_page = mui.preload({
+				'id':'leave',
+				'url':'leave_requests_list'
+			});
+			var backlog_page = mui.preload({
+				'id':'backlog',
+				'url':'detailed_backlog_list.html'
+			});
+			mui('div').on('tap','.work',function(event){
+				var target = this.getAttribute('id');
+				var webview;
+				if (webview = plus.webview.getWebviewById(target)){
+					webview.show('zoom-fade-out');
+				}
+				else
+				{
+					mui.openWindow({
+						id : target,
+						show: {
+							aniShow:'zoom-fade-out'
+							},
+						styles:{
+							popGesture: 'hide'
+						},
+						waiting:{
+							autoShow:false
+						}
+					});
+					
+				}
+			});
+		});
+	}(mui, document));
+		</script>
+	</body>
+</html>
+
